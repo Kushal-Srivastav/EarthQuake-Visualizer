@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global Earthquake Visualizer</title>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Ensure Leaflet controls appear above Tailwind layers */
+    .leaflet-container {
+      font: inherit;
+    }
+    
+    /* Custom animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+      }
+    }
+    
+    .animate-fade-in-up {
+      animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .animate-pulse-slow {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    
+    /* Gradient backgrounds */
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .gradient-card {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .gradient-success {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    .gradient-warning {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+    
+    .gradient-danger {
+      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 text-slate-900 font-['Inter']">
+  <header class="fixed top-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 shadow-lg border-b border-white/20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-20 items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-bold tracking-tight bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
+              Global Earthquake Visualizer
+            </h1>
+            <p class="text-xs text-slate-500 hidden sm:block">Real-time seismic activity monitoring</p>
+          </div>
+        </div>
+        <a 
+          class="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5" 
+          href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" 
+          target="_blank" 
+          rel="noreferrer"
+        >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+          USGS Data Source
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="pt-20">
+    <div id="root"></div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white/80 backdrop-blur-sm border-t border-white/20 mt-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- About Section -->
+        <div class="space-y-4">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center shadow-lg">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900">Earthquake Visualizer</h3>
+          </div>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            Real-time global earthquake monitoring powered by USGS data. 
+            Track seismic activity worldwide with interactive visualizations 
+            and detailed earthquake information.
+          </p>
+        </div>
+
+        <!-- Data Sources -->
+        <div class="space-y-4">
+          <h4 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">Data Sources</h4>
+          <ul class="space-y-2">
+            <li>
+              <a href="https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php" 
+                 target="_blank" 
+                 rel="noreferrer" 
+                 class="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-200 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                </svg>
+                USGS Earthquake API
+              </a>
+            </li>
+            <li>
+              <a href="https://www.openstreetmap.org/" 
+                 target="_blank" 
+                 rel="noreferrer" 
+                 class="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-200 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+                OpenStreetMap
+              </a>
+            </li>
+            <li>
+              <a href="https://leafletjs.com/" 
+                 target="_blank" 
+                 rel="noreferrer" 
+                 class="text-sm text-slate-600 hover:text-blue-600 transition-colors duration-200 flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Leaflet Maps
+              </a>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Technical Info -->
+        <div class="space-y-4">
+          <h4 class="text-sm font-semibold text-slate-900 uppercase tracking-wide">Technical Details</h4>
+          <ul class="space-y-2 text-sm text-slate-600">
+            <li>Built with React & TypeScript</li>
+            <li>Styled with Tailwind CSS</li>
+            <li>Real-time data updates</li>
+            <li>Responsive design</li>
+            <li>Interactive map controls</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bottom Bar -->
+      <div class="mt-8 pt-8 border-t border-slate-200/50">
+        <div class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+          <p class="text-xs text-slate-500">
+            © 2024 Earthquake Visualizer. Data provided by the United States Geological Survey.
+          </p>
+          <div class="flex items-center space-x-4 text-xs text-slate-500">
+            <span>Last updated: <span id="last-updated" class="font-medium">Loading...</span></span>
+            <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Vite injects modules; no Babel/UMD needed in dev -->
+  <script type="module" src="/src/main.tsx"></script>
+  
+  <!-- Update last updated time -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const lastUpdatedEl = document.getElementById('last-updated');
+      if (lastUpdatedEl) {
+        lastUpdatedEl.textContent = new Date().toLocaleTimeString();
+      }
+    });
+  </script>
+</body>
+</html>
+
+

@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Ensure Leaflet controls use app font */
+.leaflet-container {
+  font: inherit;
+}
+
+
+
